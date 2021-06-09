@@ -1,5 +1,5 @@
 import inspect
-from typing import Any, Callable, List, Type, TypeVar, Union, get_type_hints
+from typing import Any, Callable, Type, TypeVar, Union, get_type_hints
 
 from fastapi import APIRouter, Depends
 from pydantic.typing import is_classvar
@@ -7,110 +7,102 @@ from starlette.routing import Route, WebSocketRoute
 
 T = TypeVar("T")
 
-CBV_CLASS_KEY = "__cbv_class__"
+CONTROLLER_KEY = "__controller_class__"
 
 
-def cbv(router: APIRouter) -> Callable[[Type[T]], Type[T]]:
+def controller(router: APIRouter) -> Callable[[Type[T]], Type[T]]:
     """
-    This function returns a decorator that converts the decorated into a class-based view for the provided router.
+    Return a decorator that converts the decorated class into a controller for the provided router.
 
-    Any methods of the decorated class that are decorated as endpoints using the router provided to this function
-    will become endpoints in the router. The first positional argument to the methods (typically `self`)
-    will be populated with an instance created using FastAPI's dependency-injection.
-
-    For more detail, review the documentation at
-    https://fastapi-utils.davidmontague.xyz/user-guide/class-based-views/#the-cbv-decorator
+    The first positional argument to all methods decorated as endpoints using the provided router (typically `self`)
+    will be populated with a controller instance via FastAPI's dependency-injection system.
     """
 
     def decorator(cls: Type[T]) -> Type[T]:
-        return _cbv(router, cls)
+        return _controller(router, cls)
 
     return decorator
 
 
-def _cbv(router: APIRouter, cls: Type[T]) -> Type[T]:
+def _controller(router: APIRouter, cls: Type[T]) -> Type[T]:
     """
-    Replaces any methods of the provided class `cls` that are endpoints of routes in `router` with updated
+    Replace all methods of class `cls` decorated as endpoints of router `router` with
     function calls that will properly inject an instance of `cls`.
     """
-    _init_cbv(cls)
-    cbv_router = APIRouter()
+    _init_controller(cls)
+    controller_router = APIRouter()  # internal router
     function_members = inspect.getmembers(cls, inspect.isfunction)
-    functions_set = set(func for _, func in function_members)
-    cbv_routes = [
+    function_set = set(func for _, func in function_members)
+    routes = (
         route
         for route in router.routes
-        if isinstance(route, (Route, WebSocketRoute))
-        and route.endpoint in functions_set
-    ]
-    for route in cbv_routes:
+        if isinstance(route, (Route, WebSocketRoute)) and route.endpoint in function_set
+    )
+    for route in routes:
         router.routes.remove(route)
-        _update_cbv_route_endpoint_signature(cls, route)
-        cbv_router.routes.append(route)
-    router.include_router(cbv_router)
+        _update_controller_route_endpoint_signature(cls, route)
+        controller_router.routes.append(route)
+    router.include_router(controller_router)
     return cls
 
 
-def _init_cbv(cls: Type[Any]) -> None:
+def _init_controller(cls: Type[T]) -> None:
     """
-    Idempotently modifies the provided `cls`, performing the following modifications:
-    * The `__init__` function is updated to set any class-annotated dependencies as instance attributes
-    * The `__signature__` attribute is updated to indicate to FastAPI what arguments should be passed to the initializer
+    Idempotently modify class `cls`, performing following modifications:
+    - `__init__` function is updated to set any class-annotated dependencies as instance attributes
+    - `__signature__` attribute is updated to indicate to FastAPI what arguments should be passed to the initializer
     """
-    if getattr(cls, CBV_CLASS_KEY, False):  # pragma: no cover
-        return  # Already initialized
+    if getattr(cls, CONTROLLER_KEY, False):
+        return  # already initialized
     old_init: Callable[..., Any] = cls.__init__
     old_signature = inspect.signature(old_init)
-    old_parameters = list(old_signature.parameters.values())[
-        1:
-    ]  # drop `self` parameter
-    new_parameters = [
+    old_params = list(old_signature.parameters.values())[1:]  # drop `self` parameter
+    new_params = [
         x
-        for x in old_parameters
+        for x in old_params
         if x.kind
-        not in (inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD)
+        not in {inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD}
     ]
-    dependency_names: List[str] = []
+    dep_names: list[str] = []
     for name, hint in get_type_hints(cls).items():
         if is_classvar(hint):
             continue
-        parameter_kwargs = {"default": getattr(cls, name, Ellipsis)}
-        dependency_names.append(name)
-        new_parameters.append(
+        kwargs = {"default": getattr(cls, name, Ellipsis)}
+        dep_names.append(name)
+        new_params.append(
             inspect.Parameter(
                 name=name,
                 kind=inspect.Parameter.KEYWORD_ONLY,
                 annotation=hint,
-                **parameter_kwargs
+                **kwargs
             )
         )
-    new_signature = old_signature.replace(parameters=new_parameters)
+    new_signature = old_signature.replace(parameters=new_params)
 
-    def new_init(self: Any, *args: Any, **kwargs: Any) -> None:
-        for dep_name in dependency_names:
+    def new_init(self: T, *args, **kwargs) -> None:
+        for dep_name in dep_names:
             dep_value = kwargs.pop(dep_name)
             setattr(self, dep_name, dep_value)
         old_init(self, *args, **kwargs)
 
-    setattr(cls, "__signature__", new_signature)
     setattr(cls, "__init__", new_init)
-    setattr(cls, CBV_CLASS_KEY, True)
+    setattr(cls, "__signature__", new_signature)
+    setattr(cls, CONTROLLER_KEY, True)
 
 
-def _update_cbv_route_endpoint_signature(
-    cls: Type[Any], route: Union[Route, WebSocketRoute]
+def _update_controller_route_endpoint_signature(
+    cls: Type[T], route: Union[Route, WebSocketRoute]
 ) -> None:
     """
-    Fixes the endpoint signature for a cbv route to ensure FastAPI performs dependency injection properly.
+    Fix a controller route endpoint signature to ensure FastAPI injects dependencies properly.
     """
     old_endpoint = route.endpoint
     old_signature = inspect.signature(old_endpoint)
-    old_parameters: List[inspect.Parameter] = list(old_signature.parameters.values())
-    old_first_parameter = old_parameters[0]
-    new_first_parameter = old_first_parameter.replace(default=Depends(cls))
-    new_parameters = [new_first_parameter] + [
-        parameter.replace(kind=inspect.Parameter.KEYWORD_ONLY)
-        for parameter in old_parameters[1:]
+    old_params: list[inspect.Parameter] = list(old_signature.parameters.values())
+    old_1st_param = old_params[0]
+    new_1st_param = old_1st_param.replace(default=Depends(cls))
+    new_params = [new_1st_param] + [
+        param.replace(kind=inspect.Parameter.KEYWORD_ONLY) for param in old_params[1:]
     ]
-    new_signature = old_signature.replace(parameters=new_parameters)
+    new_signature = old_signature.replace(parameters=new_params)
     setattr(route.endpoint, "__signature__", new_signature)
