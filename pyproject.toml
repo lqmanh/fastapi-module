@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "fastapi-alt-controller"
+description = "FastAPI alternative controller"
+version = "0.0.1"
+authors = ["Lương Quang Mạnh <luongquangmanh85@gmail.com>"]
+license = "MIT"
+homepage = "https://github.com/lqmanh/fastapi-alt-controller"
+repository = "https://github.com/lqmanh/fastapi-alt-controller"
+
+[tool.poetry.dependencies]
+python = "^3.9"
+fastapi = "^0.65.1"
+pydantic = "^1.8.2"
+
+[tool.poetry.dev-dependencies]
+pytest = "^6.2.4"
+pytest-asyncio = "^0.15.1"
+pylint = "^2.8.2"
+pyflakes = "^2.3.1"
+black = "^21.5b1"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
