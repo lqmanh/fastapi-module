@@ -1,11 +1,11 @@
 [tool.poetry]
-name = "fastapi-alt-controller"
+name = "fastapi-module"
 description = "FastAPI alternative controller"
 version = "0.0.1"
 authors = ["Lương Quang Mạnh <luongquangmanh85@gmail.com>"]
 license = "MIT"
-homepage = "https://github.com/lqmanh/fastapi-alt-controller"
-repository = "https://github.com/lqmanh/fastapi-alt-controller"
+homepage = "https://github.com/lqmanh/fastapi-module"
+repository = "https://github.com/lqmanh/fastapi-module"
 
 [tool.poetry.dependencies]
 python = "^3.9"
