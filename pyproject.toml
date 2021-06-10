@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "fastapi-module"
-description = "FastAPI alternative controller"
+description = "FastAPI module"
 version = "0.0.1"
 authors = ["Lương Quang Mạnh <luongquangmanh85@gmail.com>"]
 license = "MIT"
