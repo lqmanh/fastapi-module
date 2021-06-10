@@ -7,7 +7,8 @@ from starlette.routing import Route, WebSocketRoute
 
 T = TypeVar("T")
 
-CONTROLLER_KEY = "__controller_class__"
+# special attribute to indicate a class is a controller
+CONTROLLER_ATTR = "__controller_class__"
 
 
 def controller(router: APIRouter) -> Callable[[Type[T]], Type[T]]:
@@ -52,7 +53,7 @@ def _init_controller(cls: Type[T]) -> None:
     - `__init__` function is updated to set any class-annotated dependencies as instance attributes
     - `__signature__` attribute is updated to indicate to FastAPI what arguments should be passed to the initializer
     """
-    if getattr(cls, CONTROLLER_KEY, False):
+    if getattr(cls, CONTROLLER_ATTR, False):
         return  # already initialized
     old_init: Callable[..., Any] = cls.__init__
     old_signature = inspect.signature(old_init)
@@ -87,7 +88,7 @@ def _init_controller(cls: Type[T]) -> None:
 
     setattr(cls, "__init__", new_init)
     setattr(cls, "__signature__", new_signature)
-    setattr(cls, CONTROLLER_KEY, True)
+    setattr(cls, CONTROLLER_ATTR, True)
 
 
 def _update_controller_route_endpoint_signature(
