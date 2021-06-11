@@ -1,4 +1,5 @@
 import inspect
+from inspect import Parameter
 from typing import Any, Callable, Type, TypeVar, Union, get_type_hints
 
 from fastapi import APIRouter, Depends
@@ -34,11 +35,11 @@ def _controller(router: APIRouter, cls: Type[T]) -> Type[T]:
     controller_router = APIRouter()  # internal router
     function_members = inspect.getmembers(cls, inspect.isfunction)
     function_set = set(func for _, func in function_members)
-    routes = (
+    routes = [
         route
         for route in router.routes
         if isinstance(route, (Route, WebSocketRoute)) and route.endpoint in function_set
-    )
+    ]
     for route in routes:
         router.routes.remove(route)
         _update_controller_route_endpoint_signature(cls, route)
@@ -61,21 +62,19 @@ def _init_controller(cls: Type[T]) -> None:
     new_params = [
         x
         for x in old_params
-        if x.kind
-        not in {inspect.Parameter.VAR_POSITIONAL, inspect.Parameter.VAR_KEYWORD}
+        if x.kind not in {Parameter.VAR_POSITIONAL, Parameter.VAR_KEYWORD}
     ]
     dep_names: list[str] = []
     for name, hint in get_type_hints(cls).items():
         if is_classvar(hint):
             continue
-        kwargs = {"default": getattr(cls, name, Ellipsis)}
         dep_names.append(name)
         new_params.append(
-            inspect.Parameter(
+            Parameter(
                 name=name,
-                kind=inspect.Parameter.KEYWORD_ONLY,
+                kind=Parameter.KEYWORD_ONLY,
                 annotation=hint,
-                **kwargs
+                default=getattr(cls, name, Ellipsis),
             )
         )
     new_signature = old_signature.replace(parameters=new_params)
@@ -99,11 +98,11 @@ def _update_controller_route_endpoint_signature(
     """
     old_endpoint = route.endpoint
     old_signature = inspect.signature(old_endpoint)
-    old_params: list[inspect.Parameter] = list(old_signature.parameters.values())
+    old_params = list(old_signature.parameters.values())
     old_1st_param = old_params[0]
     new_1st_param = old_1st_param.replace(default=Depends(cls))
     new_params = [new_1st_param] + [
-        param.replace(kind=inspect.Parameter.KEYWORD_ONLY) for param in old_params[1:]
+        param.replace(kind=Parameter.KEYWORD_ONLY) for param in old_params[1:]
     ]
     new_signature = old_signature.replace(parameters=new_params)
     setattr(route.endpoint, "__signature__", new_signature)

@@ -20,6 +20,9 @@ pyflakes = "^2.3.1"
 black = "^21.5b1"
 requests = "^2.25.1"
 
+[tool.black]
+line-length = 90
+
 [build-system]
 requires = ["poetry-core>=1.0.0"]
 build-backend = "poetry.core.masonry.api"
