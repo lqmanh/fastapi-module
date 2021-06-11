@@ -18,6 +18,7 @@ pytest-asyncio = "^0.15.1"
 pylint = "^2.8.2"
 pyflakes = "^2.3.1"
 black = "^21.5b1"
+requests = "^2.25.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
