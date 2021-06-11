@@ -29,14 +29,10 @@ def test_controller() -> None:
         def g(self) -> bool:
             return hasattr(self, "cy")
 
-    app = FastAPI()
-    app.include_router(router)
-    client = TestClient(app)
+    client = TestClient(router)
 
-    response_1 = client.get("/")
-    assert response_1.content == b"4"
-    response_2 = client.get("/classvar")
-    assert response_2.content == b"false"
+    assert client.get("/").text == "4"
+    assert client.get("/classvar").text == "false"
 
 
 def test_method_order_preserved() -> None:
@@ -52,12 +48,10 @@ def test_method_order_preserved() -> None:
         def get_item(self, item: str) -> int:  # alphabetically before `get_test`
             return 2
 
-    app = FastAPI()
-    app.include_router(router)
-    client = TestClient(app)
+    client = TestClient(router)
 
-    assert client.get("/test").content == b"1"
-    assert client.get("/other").content == b"2"
+    assert client.get("/test").text == "1"
+    assert client.get("/other").text == "2"
 
 
 def test_multiple_decorators() -> None:
