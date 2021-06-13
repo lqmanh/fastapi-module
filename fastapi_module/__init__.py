@@ -1,3 +1,3 @@
 from .controller import controller
+from .enhanced_cbd import enhanced_cbd
 from .inferring_router import InferringRouter
-from .class_dep import class_dep
