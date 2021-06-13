@@ -14,9 +14,9 @@ CONTROLLER_ATTR = "__controller_class__"
 
 def controller(router: APIRouter) -> Callable[[Type[T]], Type[T]]:
     """
-    Return a decorator that converts the decorated class into a controller for the provided router.
+    Return a decorator converting the decorated class into a controller.
 
-    The first positional argument to all methods decorated as endpoints using the provided router (typically `self`)
+    The first positional argument (typically `self`) to all methods decorated as endpoints using the provided router
     will be populated with a controller instance via FastAPI's dependency-injection system.
     """
 
@@ -29,7 +29,7 @@ def controller(router: APIRouter) -> Callable[[Type[T]], Type[T]]:
 def _controller(router: APIRouter, cls: Type[T]) -> Type[T]:
     """
     Replace all methods of class `cls` decorated as endpoints of router `router` with
-    function calls that will properly inject an instance of `cls`.
+    function calls that will properly inject an instance of class `cls`.
     """
     _init_controller(cls)
     controller_router = APIRouter()  # internal router
@@ -56,7 +56,7 @@ def _init_controller(cls: Type[T]) -> None:
     """
     if getattr(cls, CONTROLLER_ATTR, False):
         return  # already initialized
-    old_init: Callable[..., Any] = cls.__init__
+    old_init = cls.__init__
     old_signature = inspect.signature(old_init)
     old_params = list(old_signature.parameters.values())[1:]  # drop `self` parameter
     new_params = [
