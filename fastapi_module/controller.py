@@ -1,12 +1,13 @@
 import inspect
 from inspect import Parameter
-from typing import Any, Callable, Type, TypeVar, Union, get_type_hints
+from typing import Callable, Type, Union
 
 from fastapi import APIRouter, Depends
-from pydantic.typing import is_classvar
 from starlette.routing import Route, WebSocketRoute
 
-T = TypeVar("T")
+from .types import T
+from .utils import make_cls_accept_class_attr_dep
+
 
 # special attribute to indicate a class is a controller
 CONTROLLER_ATTR = "__controller_class__"
@@ -50,43 +51,11 @@ def _controller(router: APIRouter, cls: Type[T]) -> Type[T]:
 
 def _init_controller(cls: Type[T]) -> None:
     """
-    Idempotently modify class `cls`, performing following modifications:
-    - `__init__` function is updated to set any class-annotated dependencies as instance attributes
-    - `__signature__` attribute is updated to indicate to FastAPI what arguments should be passed to the initializer
+    Idempotently modify class `cls`, make it accept class-annotated dependencies.
     """
     if getattr(cls, CONTROLLER_ATTR, False):
         return  # already initialized
-    old_init = cls.__init__
-    old_signature = inspect.signature(old_init)
-    old_params = list(old_signature.parameters.values())[1:]  # drop `self` parameter
-    new_params = [
-        x
-        for x in old_params
-        if x.kind not in {Parameter.VAR_POSITIONAL, Parameter.VAR_KEYWORD}
-    ]
-    dep_names: list[str] = []
-    for name, hint in get_type_hints(cls).items():
-        if is_classvar(hint):
-            continue
-        dep_names.append(name)
-        new_params.append(
-            Parameter(
-                name=name,
-                kind=Parameter.KEYWORD_ONLY,
-                annotation=hint,
-                default=getattr(cls, name, Ellipsis),
-            )
-        )
-    new_signature = old_signature.replace(parameters=new_params)
-
-    def new_init(self: T, *args, **kwargs) -> None:
-        for dep_name in dep_names:
-            dep_value = kwargs.pop(dep_name)
-            setattr(self, dep_name, dep_value)
-        old_init(self, *args, **kwargs)
-
-    setattr(cls, "__init__", new_init)
-    setattr(cls, "__signature__", new_signature)
+    cls = make_cls_accept_class_attr_dep(cls)
     setattr(cls, CONTROLLER_ATTR, True)
 
 
