@@ -1,6 +1,6 @@
 from typing import Any, ClassVar
 
-from fastapi import APIRouter, Depends, FastAPI
+from fastapi import APIRouter, Depends
 from fastapi.testclient import TestClient
 from fastapi_module import controller
 
@@ -17,9 +17,9 @@ def test_controller() -> None:
         cy: ClassVar[int]
         x: int = Depends(dependency)
 
-        def __init__(self, z: int = Depends(dependency)):
-            self.y = 1
-            self.z = z
+        def __init__(self, y: int = Depends(dependency)):
+            self.y = y
+            self.z = 1
 
         @router.get("/", response_model=int)
         def f(self) -> int:
