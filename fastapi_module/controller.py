@@ -8,14 +8,13 @@ from starlette.routing import Route, WebSocketRoute
 from .types import T
 from .utils import make_cls_accept_class_attr_dep
 
-
 # special attribute to indicate a class is a controller
 CONTROLLER_ATTR = "__controller_class__"
 
 
 def controller(router: APIRouter) -> Callable[[Type[T]], Type[T]]:
     """
-    Return a decorator converting the decorated class into a controller.
+    Convert the decorated class into a controller.
 
     The first positional argument (typically `self`) to all methods decorated as endpoints using the provided router
     will be populated with a controller instance via FastAPI's dependency-injection system.
