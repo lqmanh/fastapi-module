@@ -8,13 +8,10 @@ from starlette.routing import Route, WebSocketRoute
 from .types import T
 from .utils import make_cls_accept_cls_annotated_deps
 
-# special attribute to indicate a class is a controller
-CONTROLLER_ATTR = "__controller_class__"
-
 
 def controller(router: APIRouter) -> Callable[[Type[T]], Type[T]]:
     """
-    Factory function that returns a decorator converting the decorated class into a controller.
+    Factory function that returns a decorator converting the decorated class into a `Controller`.
 
     The first positional argument (typically `self`) to all methods decorated as endpoints using the provided router
     will be populated with a controller instance via FastAPI's dependency-injection system.
@@ -28,6 +25,8 @@ def controller(router: APIRouter) -> Callable[[Type[T]], Type[T]]:
 
 def _controller(router: APIRouter, cls: Type[T]) -> Type[T]:
     """
+    Decorator that converts the decorated class into a `Controller`.
+
     Replace all methods of class `cls` decorated as endpoints of router `router` with
     function calls that will properly inject an instance of class `cls`.
     """
@@ -48,14 +47,14 @@ def _controller(router: APIRouter, cls: Type[T]) -> Type[T]:
     return cls
 
 
-def _init_controller(cls: Type[T]) -> None:
+def _init_controller(cls: Type[T]) -> Type[T]:
     """
     Idempotently modify class `cls`, make it accept class-annotated dependencies.
     """
-    if getattr(cls, CONTROLLER_ATTR, False):
-        return  # already initialized
-    cls = make_cls_accept_cls_annotated_deps(cls)
-    setattr(cls, CONTROLLER_ATTR, True)
+    if getattr(cls, "__fastapi_controller__", False):
+        return cls  # already initialized
+    setattr(cls, "__fastapi_controller__", cls.__name__)
+    return make_cls_accept_cls_annotated_deps(cls)
 
 
 def _update_controller_route_endpoint_signature(

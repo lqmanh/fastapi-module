@@ -1,6 +1,6 @@
 import inspect
 from inspect import Parameter
-from typing import Type, get_type_hints
+from typing import Callable, Type, get_type_hints
 
 from pydantic.typing import is_classvar
 
@@ -13,7 +13,7 @@ def make_cls_accept_cls_annotated_deps(cls: Type[T]) -> Type[T]:
     - Update `__init__` function to set any class-annotated dependencies as instance attributes
     - Update `__signature__` attribute to indicate to FastAPI what arguments should be passed to the initializer
     """
-    old_init = cls.__init__
+    old_init: Callable[..., None] = cls.__init__
     old_signature = inspect.signature(old_init)
     old_params = list(old_signature.parameters.values())[1:]  # drop `self` param
     new_params = [
