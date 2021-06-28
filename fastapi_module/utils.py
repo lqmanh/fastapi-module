@@ -7,7 +7,7 @@ from pydantic.typing import is_classvar
 from .types import T
 
 
-def make_cls_accept_class_attr_dep(cls: Type[T]) -> Type[T]:
+def make_cls_accept_cls_annotated_deps(cls: Type[T]) -> Type[T]:
     """
     Make class `cls` accept class-annotated dependencies, performing following modifications:
     - Update `__init__` function to set any class-annotated dependencies as instance attributes

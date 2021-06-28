@@ -6,7 +6,7 @@ from fastapi import APIRouter, Depends
 from starlette.routing import Route, WebSocketRoute
 
 from .types import T
-from .utils import make_cls_accept_class_attr_dep
+from .utils import make_cls_accept_cls_annotated_deps
 
 # special attribute to indicate a class is a controller
 CONTROLLER_ATTR = "__controller_class__"
@@ -54,7 +54,7 @@ def _init_controller(cls: Type[T]) -> None:
     """
     if getattr(cls, CONTROLLER_ATTR, False):
         return  # already initialized
-    cls = make_cls_accept_class_attr_dep(cls)
+    cls = make_cls_accept_cls_annotated_deps(cls)
     setattr(cls, CONTROLLER_ATTR, True)
 
 
