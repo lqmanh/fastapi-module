@@ -5,27 +5,27 @@ from typing import Callable, Type, Union
 from fastapi import APIRouter, Depends
 from starlette.routing import Route, WebSocketRoute
 
-from .types import T
+from .types import CT
 from .utils import make_cls_accept_cls_annotated_deps
 
 
-def controller(router: APIRouter) -> Callable[[Type[T]], Type[T]]:
+def controller(router: APIRouter) -> Callable[[Type[CT]], Type[CT]]:
     """
-    Factory function that returns a decorator converting the decorated class into a `Controller`.
+    Factory function that returns a decorator converting the decorated class into a controller.
 
     The first positional argument (typically `self`) to all methods decorated as endpoints using the provided router
     will be populated with a controller instance via FastAPI's dependency-injection system.
     """
 
-    def decorator(cls: Type[T]) -> Type[T]:
+    def decorator(cls: Type[CT]) -> Type[CT]:
         return _controller(router, cls)
 
     return decorator
 
 
-def _controller(router: APIRouter, cls: Type[T]) -> Type[T]:
+def _controller(router: APIRouter, cls: Type[CT]) -> Type[CT]:
     """
-    Decorator that converts the decorated class into a `Controller`.
+    Decorator that converts the decorated class into a controller.
 
     Replace all methods of class `cls` decorated as endpoints of router `router` with
     function calls that will properly inject an instance of class `cls`.
@@ -47,7 +47,7 @@ def _controller(router: APIRouter, cls: Type[T]) -> Type[T]:
     return cls
 
 
-def _init_controller(cls: Type[T]) -> Type[T]:
+def _init_controller(cls: Type[CT]) -> Type[CT]:
     """
     Idempotently modify class `cls`, make it accept class-annotated dependencies.
     """
@@ -58,7 +58,7 @@ def _init_controller(cls: Type[T]) -> Type[T]:
 
 
 def _update_controller_route_endpoint_signature(
-    cls: Type[T], route: Union[Route, WebSocketRoute]
+    cls: Type[CT], route: Union[Route, WebSocketRoute]
 ) -> None:
     """
     Fix a controller route endpoint signature to ensure FastAPI injects dependencies properly.
