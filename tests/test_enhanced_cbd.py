@@ -24,4 +24,6 @@ def test_enhanced_cbd():
         return fbd + cbd.x + cbd.y
 
     client = TestClient(router)
+
+    assert getattr(TestCBD, "__fastapi_enhanced_cbd__") == "TestCBD"
     assert client.get("/").text == "3"

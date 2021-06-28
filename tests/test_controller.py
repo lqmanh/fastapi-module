@@ -31,6 +31,7 @@ def test_controller() -> None:
 
     client = TestClient(router)
 
+    assert getattr(TestController, "__fastapi_controller__") == "TestController"
     assert client.get("/").text == "4"
     assert client.get("/classvar").text == "false"
 
