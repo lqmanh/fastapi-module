@@ -11,27 +11,31 @@ from .utils import make_cls_accept_cls_annotated_deps
 
 def controller(router: APIRouter) -> Callable[[Type[CT]], Type[CT]]:
     """
-    Factory function that returns a decorator converting the decorated class into a controller.
+    Factory function that returns a decorator converting the decorated class into a controller class.
 
     The first positional argument (typically `self`) to all methods decorated as endpoints using the provided router
     will be populated with a controller instance via FastAPI's dependency-injection system.
     """
 
     def decorator(cls: Type[CT]) -> Type[CT]:
-        return _controller(router, cls)
+        return _controller(cls, router)
 
     return decorator
 
 
-def _controller(router: APIRouter, cls: Type[CT]) -> Type[CT]:
+def _controller(cls: Type[CT], router: APIRouter) -> Type[CT]:
     """
-    Decorator that converts the decorated class into a controller.
+    Decorator that converts the decorated class into a controller class.
 
     Replace all methods of class `cls` decorated as endpoints of router `router` with
     function calls that will properly inject an instance of class `cls`.
     """
-    _init_controller(cls)
-    controller_router = APIRouter()  # internal router
+    if getattr(cls, "__fastapi_controller__", False):
+        return cls  # already initialized
+    setattr(cls, "__fastapi_controller__", cls.__name__)
+    setattr(cls, "router", router)
+    cls = make_cls_accept_cls_annotated_deps(cls)
+    internal_router = APIRouter()
     function_members = inspect.getmembers(cls, inspect.isfunction)
     function_set = set(func for _, func in function_members)
     routes = [
@@ -42,19 +46,9 @@ def _controller(router: APIRouter, cls: Type[CT]) -> Type[CT]:
     for route in routes:
         router.routes.remove(route)
         _update_controller_route_endpoint_signature(cls, route)
-        controller_router.routes.append(route)
-    router.include_router(controller_router)
+        internal_router.routes.append(route)
+    router.include_router(internal_router)
     return cls
-
-
-def _init_controller(cls: Type[CT]) -> Type[CT]:
-    """
-    Idempotently modify class `cls`, make it accept class-annotated dependencies.
-    """
-    if getattr(cls, "__fastapi_controller__", False):
-        return cls  # already initialized
-    setattr(cls, "__fastapi_controller__", cls.__name__)
-    return make_cls_accept_cls_annotated_deps(cls)
 
 
 def _update_controller_route_endpoint_signature(
