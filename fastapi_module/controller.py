@@ -14,7 +14,7 @@ CONTROLLER_ATTR = "__controller_class__"
 
 def controller(router: APIRouter) -> Callable[[Type[T]], Type[T]]:
     """
-    Convert the decorated class into a controller.
+    Factory function that returns a decorator converting the decorated class into a controller.
 
     The first positional argument (typically `self`) to all methods decorated as endpoints using the provided router
     will be populated with a controller instance via FastAPI's dependency-injection system.
