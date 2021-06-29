@@ -5,7 +5,7 @@ from fastapi import APIRouter
 from .types import CT, MT, NotAController
 
 
-def module(controllers: Iterable[Type[CT]]) -> Callable[[Type[MT]], Type[MT]]:
+def module(*, controllers: Iterable[Type[CT]]) -> Callable[[Type[MT]], Type[MT]]:
     """
     Factory function that returns a decorator converting the decorated class into a module.
     """
