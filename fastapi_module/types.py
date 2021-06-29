@@ -1,18 +1,14 @@
-from typing import ClassVar, Protocol, TypeVar, runtime_checkable
+from typing import Type, TypeVar
 
-T = TypeVar("T")
-
-
-@runtime_checkable
-class Controller(Protocol):
-    __fastapi_controller__: ClassVar[str]
+CT = TypeVar("CT")
+DT = TypeVar("DT")
+MT = TypeVar("MT")
 
 
-@runtime_checkable
-class EnhancedCBD(Protocol):
-    __fastapi_enhanced_cbd__: ClassVar[str]
+class NotAController(TypeError):
+    def __init__(self, cls: Type):
+        self.cls = cls
+        super().__init__()
 
-
-@runtime_checkable
-class Module(Protocol):
-    __fastapi_module__: ClassVar[str]
+    def __str__(self) -> str:
+        return f"{self.cls} is not a controller class"
