@@ -1,15 +1,16 @@
 import inspect
 from inspect import Parameter
-from typing import Callable, Type, Union
+from typing import Callable, TypeVar, Union
 
 from fastapi import APIRouter, Depends
 from starlette.routing import Route, WebSocketRoute
 
-from .types import CT
 from .utils import make_cls_accept_cls_annotated_deps
 
+T = TypeVar("T")
 
-def controller(router: APIRouter) -> Callable[[Type[CT]], Type[CT]]:
+
+def controller(router: APIRouter) -> Callable[[type[T]], type[T]]:
     """
     Factory function that returns a decorator converting the decorated class into a controller class.
 
@@ -17,13 +18,13 @@ def controller(router: APIRouter) -> Callable[[Type[CT]], Type[CT]]:
     will be populated with a controller instance via FastAPI's dependency-injection system.
     """
 
-    def decorator(cls: Type[CT]) -> Type[CT]:
+    def decorator(cls: type[T]) -> type[T]:
         return _controller(cls, router)
 
     return decorator
 
 
-def _controller(cls: Type[CT], router: APIRouter) -> Type[CT]:
+def _controller(cls: type[T], router: APIRouter) -> type[T]:
     """
     Decorator that converts the decorated class into a controller class.
 
@@ -52,7 +53,7 @@ def _controller(cls: Type[CT], router: APIRouter) -> Type[CT]:
 
 
 def _update_controller_route_endpoint_signature(
-    cls: Type[CT], route: Union[Route, WebSocketRoute]
+    cls: type[T], route: Union[Route, WebSocketRoute]
 ) -> None:
     """
     Fix a controller route endpoint signature to ensure FastAPI injects dependencies properly.

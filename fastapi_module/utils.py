@@ -1,13 +1,13 @@
 import inspect
 from inspect import Parameter
-from typing import Callable, Type, Union, get_type_hints
+from typing import Callable, TypeVar, get_type_hints
 
 from pydantic.typing import is_classvar
 
-from .types import CT, DT
+T = TypeVar("T")
 
 
-def make_cls_accept_cls_annotated_deps(cls: Type[Union[CT, DT]]) -> Type[Union[CT, DT]]:
+def make_cls_accept_cls_annotated_deps(cls: type[T]) -> type[T]:
     """
     Make class `cls` accept class-annotated dependencies, performing following modifications:
     - Update `__init__` function to set any class-annotated dependencies as instance attributes
@@ -36,7 +36,7 @@ def make_cls_accept_cls_annotated_deps(cls: Type[Union[CT, DT]]) -> Type[Union[C
         )
     new_signature = old_signature.replace(parameters=new_params)
 
-    def new_init(self: Union[CT, DT], *args, **kwargs) -> None:
+    def new_init(self: T, *args, **kwargs) -> None:
         for dep_name in dep_names:
             dep_value = kwargs.pop(dep_name)
             setattr(self, dep_name, dep_value)

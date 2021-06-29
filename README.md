@@ -1,7 +1,8 @@
-# Fastapi-module
+# Fastapi-module (**_unstable_**)
 
 ## Features
 
+- Class-based module
 - Class-based controller
 - Enhanced class-based dependency
 - Response model inferring router

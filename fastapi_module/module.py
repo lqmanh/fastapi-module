@@ -1,22 +1,24 @@
-from typing import Callable, Iterable, Type
+from typing import Callable, Iterable, TypeVar
 
 from fastapi import APIRouter
 
-from .types import CT, MT, NotAController
+from .types import NotAController
+
+T = TypeVar("T")
 
 
-def module(*, controllers: Iterable[Type[CT]]) -> Callable[[Type[MT]], Type[MT]]:
+def module(*, controllers: Iterable[type]) -> Callable[[type[T]], type[T]]:
     """
     Factory function that returns a decorator converting the decorated class into a module.
     """
 
-    def decorator(cls: Type[MT]) -> Type[MT]:
+    def decorator(cls: type[T]) -> type[T]:
         return _module(cls, controllers)
 
     return decorator
 
 
-def _module(cls: Type[MT], controllers: Iterable[Type[CT]]) -> Type[MT]:
+def _module(cls: type[T], controllers: Iterable[type]) -> type[T]:
     if getattr(cls, "__fastapi_module__", False):
         return cls  # already initialized
     setattr(cls, "__fastapi_module__", cls.__name__)

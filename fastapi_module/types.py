@@ -1,12 +1,5 @@
-from typing import Type, TypeVar
-
-CT = TypeVar("CT")
-DT = TypeVar("DT")
-MT = TypeVar("MT")
-
-
 class NotAController(TypeError):
-    def __init__(self, cls: Type):
+    def __init__(self, cls: type):
         self.cls = cls
         super().__init__()
 

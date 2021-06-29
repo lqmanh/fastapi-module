@@ -1,10 +1,11 @@
-from typing import Type
+from typing import TypeVar
 
-from .types import DT
 from .utils import make_cls_accept_cls_annotated_deps
 
+T = TypeVar("T")
 
-def enhanced_cbd(cls: Type[DT]) -> Type[DT]:
+
+def enhanced_cbd(cls: type[T]) -> type[T]:
     """
     Decorator that enhances class-based dependencies.
     """
