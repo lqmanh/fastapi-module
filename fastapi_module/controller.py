@@ -47,6 +47,7 @@ def _controller(cls: type[T], router: APIRouter) -> type[T]:
     for route in routes:
         router.routes.remove(route)
         _update_controller_route_endpoint_signature(cls, route)
+        route.path = route.path.removeprefix(router.prefix)
         internal_router.routes.append(route)
     router.include_router(internal_router)
     return cls
