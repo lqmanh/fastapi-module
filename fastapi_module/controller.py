@@ -5,6 +5,7 @@ from typing import Callable, TypeVar, Union
 from fastapi import APIRouter, Depends
 from starlette.routing import Route, WebSocketRoute
 
+from .types import InitializedError
 from .utils import make_cls_accept_cls_annotated_deps
 
 T = TypeVar("T")
@@ -32,7 +33,7 @@ def _controller(cls: type[T], router: APIRouter) -> type[T]:
     function calls that will properly inject an instance of class `cls`.
     """
     if getattr(cls, "__fastapi_controller__", False):
-        return cls  # already initialized
+        raise InitializedError(cls)
     setattr(cls, "__fastapi_controller__", cls.__name__)
     setattr(cls, "router", router)
     cls = make_cls_accept_cls_annotated_deps(cls)

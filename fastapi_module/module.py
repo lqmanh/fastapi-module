@@ -2,7 +2,7 @@ from typing import Callable, Iterable, TypeVar
 
 from fastapi import APIRouter
 
-from .types import NotAController
+from .types import InitializedError, NotAController
 
 T = TypeVar("T")
 
@@ -20,7 +20,7 @@ def module(*, controllers: Iterable[type]) -> Callable[[type[T]], type[T]]:
 
 def _module(cls: type[T], controllers: Iterable[type]) -> type[T]:
     if getattr(cls, "__fastapi_module__", False):
-        return cls  # already initialized
+        raise InitializedError(cls)
     setattr(cls, "__fastapi_module__", cls.__name__)
 
     for controller in controllers:
