@@ -1,6 +1,7 @@
 import inspect
+from collections.abc import Callable
 from inspect import Parameter
-from typing import Callable, TypeVar, get_type_hints
+from typing import TypeVar, get_type_hints
 
 from pydantic.typing import is_classvar
 

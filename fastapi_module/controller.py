@@ -1,6 +1,7 @@
 import inspect
+from collections.abc import Callable
 from inspect import Parameter
-from typing import Callable, TypeVar, Union
+from typing import TypeVar, Union
 
 from fastapi import APIRouter, Depends
 from starlette.routing import Route, WebSocketRoute
