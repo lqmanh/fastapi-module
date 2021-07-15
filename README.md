@@ -1,5 +1,7 @@
 # Fastapi-module (**_unstable_**)
 
+FastAPI module utilities
+
 ## Features
 
 - Class-based module
