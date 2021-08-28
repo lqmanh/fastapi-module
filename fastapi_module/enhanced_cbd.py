@@ -13,4 +13,5 @@ def enhanced_cbd(cls: type[T]) -> type[T]:
     if getattr(cls, "__fastapi_enhanced_cbd__", False):
         raise InitializedError(cls)
     setattr(cls, "__fastapi_enhanced_cbd__", cls.__name__)
+
     return make_cls_accept_cls_annotated_deps(cls)

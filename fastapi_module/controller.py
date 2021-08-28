@@ -37,6 +37,7 @@ def _controller(cls: type[T], router: APIRouter) -> type[T]:
         raise InitializedError(cls)
     setattr(cls, "__fastapi_controller__", cls.__name__)
     setattr(cls, "router", router)
+
     cls = make_cls_accept_cls_annotated_deps(cls)
     internal_router = APIRouter()
     function_members = inspect.getmembers(cls, inspect.isfunction)
