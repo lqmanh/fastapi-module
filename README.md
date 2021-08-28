@@ -5,9 +5,8 @@ FastAPI module utilities
 ## Features
 
 - Class-based module
-- Class-based controller
+- Class-based controller with response model inferring router
 - Enhanced class-based dependency
-- Response model inferring router
 
 ## Installation
 
