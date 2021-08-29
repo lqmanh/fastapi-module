@@ -37,7 +37,7 @@ def _module(cls: type[T], prefix: str = "", *, controllers: Sequence[type]) -> t
         router: APIRouter = getattr(controller, "router")
         version: Optional[float] = getattr(controller, "__version__")
         if version:
-            prefix = f"v{version}/{prefix.removeprefix('/')}"
+            prefix = f"/v{version}/{prefix.removeprefix('/')}"
         internal_router.include_router(router, prefix=prefix)
     setattr(cls, "router", internal_router)
     return cls
