@@ -8,6 +8,7 @@ FastAPI module utilities
 - Class-based controller
 - Enhanced class-based dependency
 - Response model inferring router
+- API versioning
 
 ## Installation
 
