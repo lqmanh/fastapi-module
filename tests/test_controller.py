@@ -21,19 +21,29 @@ def test_controller() -> None:
             self.y = y
             self.z = 1
 
-        @router.get("/", response_model=int)
+        @router.get("/f", response_model=int)
         def f(self) -> int:
             return self.cx + self.x + self.y + self.z
 
-        @router.get("/classvar", response_model=bool)
+        @router.get("/g", response_model=bool)
         def g(self) -> bool:
             return hasattr(self, "cy")
 
     client = TestClient(router)
 
     assert getattr(TestController, "__fastapi_controller__") == "TestController"
-    assert client.get("/").text == "4"
-    assert client.get("/classvar").text == "false"
+    assert client.get("/f").text == "4"
+    assert client.get("/g").text == "false"
+
+
+def test_controller_with_version() -> None:
+    router = APIRouter()
+
+    @controller(router, version=1)
+    class TestController:
+        ...
+
+    assert getattr(TestController, "__version__") == 1
 
 
 def test_method_order_preserved() -> None:

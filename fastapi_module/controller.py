@@ -1,7 +1,7 @@
 import inspect
 from collections.abc import Callable
 from inspect import Parameter
-from typing import TypeVar, Union
+from typing import Optional, TypeVar, Union
 
 from fastapi import APIRouter, Depends
 from starlette.routing import Route, WebSocketRoute
@@ -12,7 +12,9 @@ from .utils import make_cls_accept_cls_annotated_deps
 T = TypeVar("T")
 
 
-def controller(router: APIRouter) -> Callable[[type[T]], type[T]]:
+def controller(
+    router: APIRouter, *, version: Optional[float] = None
+) -> Callable[[type[T]], type[T]]:
     """
     Factory function that returns a decorator converting the decorated class into a controller class.
 
@@ -21,12 +23,14 @@ def controller(router: APIRouter) -> Callable[[type[T]], type[T]]:
     """
 
     def decorator(cls: type[T]) -> type[T]:
-        return _controller(cls, router)
+        return _controller(cls, router, version=version)
 
     return decorator
 
 
-def _controller(cls: type[T], router: APIRouter) -> type[T]:
+def _controller(
+    cls: type[T], router: APIRouter, *, version: Optional[float] = None
+) -> type[T]:
     """
     Decorator that converts the decorated class into a controller class.
 
@@ -36,6 +40,7 @@ def _controller(cls: type[T], router: APIRouter) -> type[T]:
     if getattr(cls, "__fastapi_controller__", False):
         raise InitializedError(cls)
     setattr(cls, "__fastapi_controller__", cls.__name__)
+    setattr(cls, "__version__", version)
     setattr(cls, "router", router)
 
     cls = make_cls_accept_cls_annotated_deps(cls)
