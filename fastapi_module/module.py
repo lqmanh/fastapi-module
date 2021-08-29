@@ -1,5 +1,5 @@
-from collections.abc import Callable
-from typing import Iterable, Optional, TypeVar
+from collections.abc import Callable, Sequence
+from typing import Optional, TypeVar
 
 from fastapi import APIRouter
 
@@ -9,7 +9,7 @@ T = TypeVar("T")
 
 
 def module(
-    prefix: str = "", *, controllers: Iterable[type]
+    prefix: str = "", *, controllers: Sequence[type]
 ) -> Callable[[type[T]], type[T]]:
     """
     Factory function that returns a decorator converting the decorated class into a module.
@@ -21,7 +21,7 @@ def module(
     return decorator
 
 
-def _module(cls: type[T], prefix: str = "", *, controllers: Iterable[type]) -> type[T]:
+def _module(cls: type[T], prefix: str = "", *, controllers: Sequence[type]) -> type[T]:
     if getattr(cls, "__fastapi_module__", False):
         raise InitializedError(cls)
     setattr(cls, "__fastapi_module__", cls.__name__)
