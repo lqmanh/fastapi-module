@@ -9,8 +9,8 @@ repository = "https://github.com/lqmanh/fastapi-module"
 
 [tool.poetry.dependencies]
 python = "^3.9"
-fastapi = "^0.68.1"
-pydantic = "^1.8.2"
+fastapi = ">=0.68.1"
+pydantic = ">=1.8.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.4"
