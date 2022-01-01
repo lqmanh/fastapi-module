@@ -16,7 +16,7 @@ pydantic = ">=1.8.2"
 pytest = "^6.2.4"
 pytest-asyncio = "^0.15.1"
 pytest-cov = "^3.0.0"
-mypy = "^0.910"
+mypy = "^0.930"
 black = "^21.6b0"
 requests = "^2.25.1"
 
